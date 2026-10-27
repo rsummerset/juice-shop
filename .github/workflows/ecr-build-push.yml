@@ -1,0 +1,44 @@
+name: Build, scan, and push to ECR
+
+on:
+  workflow_dispatch:        # manual "Run workflow" button for now
+
+permissions:
+  id-token: write           # lets GitHub request the OIDC token
+  contents: read
+
+jobs:
+  build-scan-push:
+    runs-on: ubuntu-latest
+    env:
+      ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+      IMAGE_TAG: ${{ github.sha }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Assume AWS role (no stored keys)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Log in to ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build image
+        run: |
+          docker build -t ${{ steps.ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG .
+
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ steps.ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ github.sha }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '0'      # report only for now (see note)
+
+      - name: Push image to ECR
+        run: |
+          docker push ${{ steps.ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
