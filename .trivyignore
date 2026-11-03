@@ -1,0 +1,14 @@
+# Accepted risk: OWASP Juice Shop is intentionally vulnerable (training app).
+# Several of these are deliberate hacking challenges (e.g., JWT bypass, weak crypto).
+# Reviewed 11/03/2026 by R. Summerset. Not for production use. Re-review on next image update.
+
+# crypto-js 3.3.0 — PBKDF2 far weaker than specified (fixed in 4.2.0)
+CVE-2023-46233
+# crypto-js 3.3.0 — insufficient entropy in secret generation (fixed in 4.0.0)
+CVE-2026-71851
+# jsonwebtoken 0.1.0 / 0.4.0 — token verification bypass (fixed in 4.2.2)
+CVE-2015-9235
+# lodash 2.4.2 — prototype pollution in defaultsDeep (fixed in 4.17.12)
+CVE-2019-10744
+# tar 6.2.1 — denial of service via crafted gzip bomb (fixed in 7.5.19)
+CVE-2026-59873
